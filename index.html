@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>VANET Interactive Demo - How It Works</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -16,12 +18,22 @@
             background: #1a1a2e;
             color: #fff;
             overflow-x: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
         }
 
         header {
@@ -44,6 +56,19 @@
             opacity: 0.9;
         }
 
+        @media (max-width: 768px) {
+            header {
+                padding: 20px 10px;
+                margin-bottom: 20px;
+            }
+            header h1 {
+                font-size: 1.8em;
+            }
+            header p {
+                font-size: 1em;
+            }
+        }
+
         .nav-buttons {
             text-align: center;
             margin-bottom: 30px;
@@ -61,6 +86,14 @@
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .nav-btn {
+                padding: 10px 20px;
+                margin: 5px;
+                font-size: 14px;
+            }
         }
 
         .nav-btn:hover {
@@ -86,12 +119,25 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        @media (max-width: 768px) {
+            .demo-section {
+                padding: 15px;
+                border-radius: 15px;
+                margin-bottom: 20px;
+            }
+            .demo-section h2 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+        }
+
         .canvas-container {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             padding: 20px;
             margin: 20px 0;
             position: relative;
+            overflow-x: auto;
         }
 
         #vanetCanvas {
@@ -100,6 +146,14 @@
             border-radius: 10px;
             background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);
             cursor: pointer;
+            touch-action: none;
+        }
+
+        @media (max-width: 768px) {
+            .canvas-container {
+                padding: 10px;
+                margin: 10px 0;
+            }
         }
 
         .controls-panel {
@@ -150,6 +204,30 @@
             background: #ffd700;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .slider-control input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .slider-control input[type="range"] {
+                height: 12px;
+            }
+            .slider-control input[type="range"]::-webkit-slider-thumb {
+                width: 28px;
+                height: 28px;
+            }
+            .slider-control input[type="range"]::-moz-range-thumb {
+                width: 28px;
+                height: 28px;
+            }
         }
 
         .slider-control .value-display {
@@ -261,6 +339,15 @@
             font-weight: bold;
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            min-width: 120px;
+        }
+
+        @media (max-width: 768px) {
+            .action-btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                min-width: 100px;
+            }
         }
 
         .action-btn:hover {
@@ -270,7 +357,20 @@
         }
 
         .action-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0px);
+            background: #21618c;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            .action-btn:hover {
+                transform: none;
+                background: #3498db;
+            }
+            .action-btn:active {
+                background: #21618c;
+                transform: scale(0.98);
+            }
         }
 
         .status-indicator {
@@ -324,9 +424,85 @@
         }
 
         @media (max-width: 768px) {
-            header h1 { font-size: 1.8em; }
-            .controls-panel { grid-template-columns: 1fr; }
-            .metrics-grid { grid-template-columns: 1fr 1fr; }
+            .controls-panel { 
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .metrics-grid { 
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .metric-card {
+                padding: 15px;
+            }
+            .metric-card .label {
+                font-size: 0.8em;
+            }
+            .metric-card .value {
+                font-size: 1.5em;
+            }
+            .control-group {
+                padding: 15px;
+            }
+            .control-group h3 {
+                font-size: 1.1em;
+            }
+            .legend {
+                gap: 10px;
+            }
+            .legend-item {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            .action-buttons {
+                gap: 10px;
+            }
+            .explanation-box {
+                padding: 15px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+            header h1 {
+                font-size: 1.5em;
+            }
+            header p {
+                font-size: 0.9em;
+            }
+            .demo-section {
+                padding: 10px;
+            }
+            .demo-section h2 {
+                font-size: 1.3em;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .metric-card .value {
+                font-size: 1.8em;
+            }
+            .action-btn {
+                padding: 10px 15px;
+                font-size: 13px;
+                width: 100%;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .legend {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .legend-item {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -369,7 +545,7 @@
             </div>
 
             <div class="canvas-container">
-                <canvas id="vanetCanvas" width="1200" height="400"></canvas>
+                <canvas id="vanetCanvas"></canvas>
             </div>
 
             <div class="action-buttons">
@@ -569,6 +745,36 @@
         // Canvas and simulation variables
         const canvas = document.getElementById('vanetCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // Set canvas size responsively
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth - 40; // Account for padding
+            
+            if (window.innerWidth <= 480) {
+                canvas.width = Math.min(containerWidth, 600);
+                canvas.height = 300;
+            } else if (window.innerWidth <= 768) {
+                canvas.width = Math.min(containerWidth, 800);
+                canvas.height = 350;
+            } else {
+                canvas.width = Math.min(containerWidth, 1200);
+                canvas.height = 400;
+            }
+        }
+        
+        // Initial resize
+        resizeCanvas();
+        
+        // Resize on window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if (!isRunning) {
+                // Redraw static scene if not running
+                drawStaticScene();
+            }
+        });
+        
         let vehicles = [];
         let groundStations = [];
         let isRunning = false;
@@ -970,26 +1176,41 @@
         initSimulation();
         updateMetrics();
 
-        // Draw initial frame
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#2c3e50';
-        ctx.fillRect(0, 80, canvas.width, 240);
-        
-        // Draw lane dividers
-        ctx.strokeStyle = '#f39c12';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([20, 10]);
-        for (let i = 1; i <= 3; i++) {
+        // Function to draw static scene
+        function drawStaticScene() {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 80, canvas.width, 240);
+            
+            // Draw lane dividers
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 10]);
+            for (let i = 1; i <= 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 80 + (i * 60));
+                ctx.lineTo(canvas.width, 80 + (i * 60));
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Draw road edges
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(0, 80 + (i * 60));
-            ctx.lineTo(canvas.width, 80 + (i * 60));
+            ctx.moveTo(0, 80);
+            ctx.lineTo(canvas.width, 80);
+            ctx.moveTo(0, 320);
+            ctx.lineTo(canvas.width, 320);
             ctx.stroke();
+            
+            groundStations.forEach(gs => gs.draw());
+            vehicles.forEach(v => v.draw());
         }
-        ctx.setLineDash([]);
-        
-        groundStations.forEach(gs => gs.draw());
-        vehicles.forEach(v => v.draw());
+
+        // Draw initial frame
+        drawStaticScene();
     </script>
 </body>
 </html>
