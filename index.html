@@ -956,10 +956,18 @@
                 });
 
                 // Simulate packet reception with PDR
-                const basePDR = Math.min(1.0, transmissionRange / 300);
+                // Simulate packet reception with PDR
+                // Base PDR decreases with distance
+                const basePDR = Math.min(1.0, Math.max(0, 1.0 - (transmissionRange / 600))); // Better base PDR curve
+
+                // CBR penalty: Linear drop as CBR increases
+                // If CBR is 0 (empty channel), factor is 1.0 (no penalty)
+                // If CBR is 1 (full channel), factor is 0.0 (100% loss)
+                // We add a small buffer so it doesn't go to absolute zero instantly
                 const cbr = totalTime > 0 ? Math.min(1, channelBusyTime / totalTime) : 0;
-                const cbrPenalty = Math.min(0.3, cbr);
-                const actualPDR = Math.max(0, basePDR - cbrPenalty);
+                const cbrFactor = Math.max(0.1, 1.0 - (cbr * 1.5)); // Aggressive penalty: 50% CBR -> 0.25 factor
+
+                const actualPDR = Math.max(0, basePDR * cbrFactor);
 
                 this.neighbors.forEach(neighbor => {
                     totalPacketAttempts++;  // Count each transmission attempt
@@ -1105,6 +1113,7 @@
             totalTime = 0;
             totalBytesTransmitted = 0;
             time = 0;
+            lastMetricUpdate = 0;
         }
 
         function resetDemo() {
@@ -1119,6 +1128,7 @@
 
         // Animation loop
         let lastTime = 0;
+        let lastMetricUpdate = 0;
         function animate(currentTime) {
             if (!lastTime) lastTime = currentTime;
             const deltaTime = currentTime - lastTime;
@@ -1171,9 +1181,20 @@
                 v.draw();
             });
 
-            // Update metrics every second
-            if (time % 1000 < 50) {
+            // Update metrics every second (instantaneous)
+            if (currentTime - lastMetricUpdate >= 1000) {
                 updateMetrics();
+                lastMetricUpdate = currentTime;
+
+                // Reset counters for next second to show instantaneous values
+                if (isRunning) {
+                    totalPacketsSent = 0;
+                    totalPacketsReceived = 0;
+                    totalPacketAttempts = 0;
+                    channelBusyTime = 0;
+                    totalTime = 0;
+                    totalBytesTransmitted = 0;
+                }
             }
 
             if (isRunning) {
