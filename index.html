@@ -583,8 +583,11 @@
         // Metrics
         let totalPacketsSent = 0;
         let totalPacketsReceived = 0;
+        let totalPacketAttempts = 0;  // Track actual transmission attempts
         let channelBusyTime = 0;
         let totalTime = 0;
+        let totalBytesTransmitted = 0;  // Track actual data volume
+        const PACKET_SIZE = 512;  // bytes per beacon packet
 
         // Vehicle class
         class Vehicle {
@@ -656,13 +659,16 @@
 
                 // Simulate packet reception with PDR
                 const basePDR = Math.min(1.0, transmissionRange / 300);
-                const cbrPenalty = Math.min(0.3, channelBusyTime / totalTime);
+                const cbr = totalTime > 0 ? Math.min(1, channelBusyTime / totalTime) : 0;
+                const cbrPenalty = Math.min(0.3, cbr);
                 const actualPDR = Math.max(0, basePDR - cbrPenalty);
 
                 this.neighbors.forEach(neighbor => {
+                    totalPacketAttempts++;  // Count each transmission attempt
                     const success = Math.random() < actualPDR;
                     if (success) {
                         totalPacketsReceived++;
+                        totalBytesTransmitted += PACKET_SIZE;  // Track successful data transfer
                     }
                     
                     // Create visual packet
@@ -674,9 +680,9 @@
                     });
                 });
 
-                // Update CBR
-                const transmissionDuration = 10; // ms
-                channelBusyTime += transmissionDuration * (1 + this.neighbors.length * 0.1);
+                // Update CBR - track actual channel occupation time
+                const transmissionDuration = 10; // ms per packet
+                channelBusyTime += transmissionDuration;
             }
 
             draw() {
@@ -796,8 +802,10 @@
         function resetMetrics() {
             totalPacketsSent = 0;
             totalPacketsReceived = 0;
+            totalPacketAttempts = 0;
             channelBusyTime = 0;
             totalTime = 0;
+            totalBytesTransmitted = 0;
             time = 0;
         }
 
@@ -892,22 +900,25 @@
         }
 
         function updateMetrics() {
-            // Calculate PDR
-            const pdr = totalPacketsSent > 0 ? totalPacketsReceived / totalPacketsSent : 0;
+            // Calculate PDR (Packet Delivery Ratio) - ratio of successful receptions to total attempts
+            const pdr = totalPacketAttempts > 0 ? totalPacketsReceived / totalPacketAttempts : 0;
             const pdrPercent = (pdr * 100).toFixed(2);
             document.getElementById('pdrValue').textContent = pdrPercent + '%';
             
             const pdrCard = document.getElementById('pdrCard');
             pdrCard.className = 'metric-card ' + (pdr > 0.7 ? 'good' : pdr > 0.4 ? 'medium' : 'poor');
 
-            // Calculate Throughput (simplified)
-            const throughput = (totalPacketsReceived * beaconHz * 0.5).toFixed(2);
+            // Calculate Throughput - actual data transmitted over time (in kbps)
+            const timeInSeconds = totalTime / 1000;
+            const throughput = timeInSeconds > 0 
+                ? ((totalBytesTransmitted * 8) / 1000 / timeInSeconds).toFixed(2) 
+                : 0;
             document.getElementById('throughputValue').textContent = throughput + ' kbps';
             
             const throughputCard = document.getElementById('throughputCard');
-            throughputCard.className = 'metric-card ' + (throughput > 20 ? 'good' : throughput > 10 ? 'medium' : 'poor');
+            throughputCard.className = 'metric-card ' + (throughput > 10 ? 'good' : throughput > 5 ? 'medium' : 'poor');
 
-            // Calculate CBR
+            // Calculate CBR (Channel Busy Ratio) - proportion of time channel is occupied
             const cbr = totalTime > 0 ? Math.min(1, channelBusyTime / totalTime) : 0;
             document.getElementById('cbrValue').textContent = cbr.toFixed(3);
             
