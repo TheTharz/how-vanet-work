@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VANET Interactive Demo - How It Works</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background: #2c3e50;
+            border: 2px solid #34495e;
+            color: white;
+            padding: 12px 30px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: #34495e;
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .demo-section h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        #vanetCanvas {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);
+            cursor: pointer;
+        }
+
+        .controls-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            color: #ffd700;
+        }
+
+        .slider-control {
+            margin: 20px 0;
+        }
+
+        .slider-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .slider-control .value-display {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-card .label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .metric-card.good .value { color: #2ecc71; }
+        .metric-card.medium .value { color: #f39c12; }
+        .metric-card.poor .value { color: #e74c3c; }
+
+        .explanation-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #ffd700;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .explanation-box h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .explanation-box p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-card h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-card ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-card ul li:before {
+            content: "→ ";
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8em; }
+            .controls-panel { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 VANET Interactive Demo</h1>
+            <p>Learn How Vehicular Ad-hoc Networks Work</p>
+        </header>
+
+        <div class="nav-buttons">
+            <a href="/" class="nav-btn">← Back to Dashboard</a>
+            <button class="nav-btn" onclick="resetDemo()">🔄 Reset Demo</button>
+        </div>
+
+        <!-- Interactive Simulation -->
+        <div class="demo-section">
+            <h2>Interactive VANET Simulation</h2>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>Vehicle (V2V)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #34495e;"></div>
+                    <span>Ground Station (RSU)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd700;"></div>
+                    <span>V2V Broadcasting</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>RSU to Vehicle (V2I)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2ecc71;"></div>
+                    <span>Success Packet</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Failed Packet</span>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="vanetCanvas" width="1200" height="400"></canvas>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn" onclick="toggleSimulation()">
+                    <span id="playPauseText">▶️ Start Simulation</span>
+                </button>
+                <button class="action-btn" onclick="addVehicle()">➕ Add Vehicle</button>
+                <button class="action-btn" onclick="removeVehicle()">➖ Remove Vehicle</button>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>📡 Beacon Frequency</h3>
+                    <div class="slider-control">
+                        <label>
+                            Frequency: <span class="value-display" id="beaconValue">8 Hz</span>
+                        </label>
+                        <input type="range" id="beaconSlider" min="2" max="20" value="8" step="1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📶 Transmission Power</h3>
+                    <div class="slider-control">
+                        <label>
+                            TX Power: <span class="value-display" id="txPowerValue">23 dBm</span>
+                        </label>
+                        <input type="range" id="txPowerSlider" min="10" max="30" value="23" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Display -->
+            <div class="metrics-grid">
+                <div class="metric-card" id="pdrCard">
+                    <div class="label">Packet Delivery Ratio (PDR)</div>
+                    <div class="value" id="pdrValue">0.00%</div>
+                </div>
+                <div class="metric-card" id="throughputCard">
+                    <div class="label">Throughput</div>
+                    <div class="value" id="throughputValue">0 kbps</div>
+                </div>
+                <div class="metric-card" id="cbrCard">
+                    <div class="label">Channel Busy Ratio (CBR)</div>
+                    <div class="value" id="cbrValue">0.00</div>
+                </div>
+                <div class="metric-card" id="neighborsCard">
+                    <div class="label">Avg Neighbors</div>
+                    <div class="value" id="neighborsValue">0.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ground Station class (RSU - Roadside Unit)
+        class GroundStation {
+            constructor(x, y, name) {
+                this.x = x;
+                this.y = y;
+                this.name = name;
+                this.range = 300; // Fixed larger range
+                this.transmitting = false;
+                this.transmitTime = 0;
+                this.lastBeacon = 0;
+                this.beaconInterval = 1000; // 1 Hz
+                this.packets = [];
+            }
+
+            update(deltaTime) {
+                // Send periodic beacons
+                if (time - this.lastBeacon >= this.beaconInterval) {
+                    this.sendBeacon();
+                    this.lastBeacon = time;
+                }
+
+                // Update transmission animation
+                if (this.transmitting) {
+                    this.transmitTime += deltaTime;
+                    if (this.transmitTime > 300) {
+                        this.transmitting = false;
+                        this.transmitTime = 0;
+                    }
+                }
+
+                // Update packets
+                this.packets = this.packets.filter(packet => {
+                    packet.progress += deltaTime / packet.duration;
+                    return packet.progress < 1;
+                });
+            }
+
+            sendBeacon() {
+                this.transmitting = true;
+                this.transmitTime = 0;
+
+                // Find vehicles in range
+                const inRange = vehicles.filter(v => {
+                    const dist = Math.sqrt(Math.pow(v.x - this.x, 2) + Math.pow(v.y - this.y, 2));
+                    return dist <= this.range;
+                });
+
+                // Send packets to vehicles
+                inRange.forEach(vehicle => {
+                    const success = Math.random() > 0.1; // 90% success rate for RSU
+                    this.packets.push({
+                        target: vehicle,
+                        progress: 0,
+                        duration: 600,
+                        success: success
+                    });
+                });
+            }
+
+            draw() {
+                // Draw range circle
+                if (this.transmitting) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(52, 152, 219, 0.05)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(52, 152, 219, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Transmission wave
+                    const waveRadius = (this.transmitTime / 300) * this.range;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, waveRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(52, 152, 219, ${1 - this.transmitTime / 300})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Draw tower structure
+                ctx.fillStyle = '#34495e';
+                ctx.fillRect(this.x - 8, this.y - 30, 16, 30);
+                
+                // Tower top
+                ctx.beginPath();
+                ctx.moveTo(this.x - 15, this.y - 30);
+                ctx.lineTo(this.x, this.y - 45);
+                ctx.lineTo(this.x + 15, this.y - 30);
+                ctx.closePath();
+                ctx.fillStyle = this.transmitting ? '#3498db' : '#7f8c8d';
+                ctx.fill();
+
+                // Antenna
+                ctx.strokeStyle = '#ecf0f1';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - 45);
+                ctx.lineTo(this.x, this.y - 60);
+                ctx.stroke();
+
+                // Antenna tip
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - 60, 5, 0, Math.PI * 2);
+                ctx.fillStyle = this.transmitting ? '#e74c3c' : '#c0392b';
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = '#ecf0f1';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, this.x, this.y + 15);
+
+                // Draw packets
+                this.packets.forEach(packet => {
+                    const startX = this.x;
+                    const startY = this.y - 30;
+                    const endX = packet.target.x;
+                    const endY = packet.target.y;
+                    
+                    const currentX = startX + (endX - startX) * packet.progress;
+                    const currentY = startY + (endY - startY) * packet.progress;
+                    
+                    ctx.save();
+                    ctx.translate(currentX, currentY);
+                    
+                    // Packet with icon
+                    ctx.fillStyle = packet.success ? '#3498db' : '#e67e22';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = packet.success ? '#3498db' : '#e67e22';
+                    ctx.fill();
+                    
+                    ctx.restore();
+                });
+            }
+        }
+
+        // Canvas and simulation variables
+        const canvas = document.getElementById('vanetCanvas');
+        const ctx = canvas.getContext('2d');
+        let vehicles = [];
+        let groundStations = [];
+        let isRunning = false;
+        let animationId = null;
+        let time = 0;
+
+        // Parameters
+        let beaconHz = 8;
+        let txPower = 23;
+        let transmissionRange = 250;
+
+        // Metrics
+        let totalPacketsSent = 0;
+        let totalPacketsReceived = 0;
+        let channelBusyTime = 0;
+        let totalTime = 0;
+
+        // Vehicle class
+        class Vehicle {
+            constructor(x, y, speed, lane) {
+                this.x = x;
+                this.y = y;
+                this.lane = lane; // 0, 1, 2, or 3
+                this.speed = speed;
+                // Lanes 0 and 1 move right, lanes 2 and 3 move left
+                this.direction = lane < 2 ? 1 : -1;
+                this.lastBeacon = 0;
+                this.beaconInterval = 1000 / beaconHz;
+                this.transmitting = false;
+                this.transmitTime = 0;
+                this.neighbors = [];
+                this.packets = []; // Array to store active packets
+                // Different colors for different lanes
+                const colors = ['#3498db', '#9b59b6', '#e74c3c', '#2ecc71'];
+                this.color = colors[lane];
+            }
+
+            update(deltaTime) {
+                // Move vehicle
+                this.x += this.speed * this.direction * deltaTime / 1000;
+
+                // Wrap around
+                if (this.x > canvas.width + 50) {
+                    this.x = -50;
+                } else if (this.x < -50) {
+                    this.x = canvas.width + 50;
+                }
+
+                // Update beacon interval
+                this.beaconInterval = 1000 / beaconHz;
+
+                // Check if time to send beacon
+                if (time - this.lastBeacon >= this.beaconInterval) {
+                    this.sendBeacon();
+                    this.lastBeacon = time;
+                }
+
+                // Update transmission animation
+                if (this.transmitting) {
+                    this.transmitTime += deltaTime;
+                    if (this.transmitTime > 200) {
+                        this.transmitting = false;
+                        this.transmitTime = 0;
+                    }
+                }
+
+                // Update packets
+                this.packets = this.packets.filter(packet => {
+                    packet.progress += deltaTime / packet.duration;
+                    return packet.progress < 1;
+                });
+            }
+
+            sendBeacon() {
+                this.transmitting = true;
+                this.transmitTime = 0;
+                totalPacketsSent++;
+
+                // Find neighbors in range
+                this.neighbors = vehicles.filter(v => {
+                    if (v === this) return false;
+                    const dist = Math.sqrt(Math.pow(v.x - this.x, 2) + Math.pow(v.y - this.y, 2));
+                    return dist <= transmissionRange;
+                });
+
+                // Simulate packet reception with PDR
+                const basePDR = Math.min(1.0, transmissionRange / 300);
+                const cbrPenalty = Math.min(0.3, channelBusyTime / totalTime);
+                const actualPDR = Math.max(0, basePDR - cbrPenalty);
+
+                this.neighbors.forEach(neighbor => {
+                    const success = Math.random() < actualPDR;
+                    if (success) {
+                        totalPacketsReceived++;
+                    }
+                    
+                    // Create visual packet
+                    this.packets.push({
+                        target: neighbor,
+                        progress: 0,
+                        duration: 500, // 500ms to reach target
+                        success: success
+                    });
+                });
+
+                // Update CBR
+                const transmissionDuration = 10; // ms
+                channelBusyTime += transmissionDuration * (1 + this.neighbors.length * 0.1);
+            }
+
+            draw() {
+                // Draw communication range
+                if (this.transmitting) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, transmissionRange, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(46, 204, 113, 0.1)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(46, 204, 113, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw transmission waves
+                    const waveRadius = (this.transmitTime / 200) * transmissionRange;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, waveRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 215, 0, ${1 - this.transmitTime / 200})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Draw vehicle as a car shape
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                if (this.direction < 0) {
+                    ctx.scale(-1, 1);
+                }
+                
+                // Car body
+                ctx.fillStyle = this.transmitting ? '#ffd700' : this.color;
+                ctx.fillRect(-20, -8, 40, 16);
+                
+                // Car roof
+                ctx.fillStyle = this.transmitting ? '#f1c40f' : '#2c3e50';
+                ctx.fillRect(-12, -16, 24, 10);
+                
+                // Windows
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(-10, -14, 8, 6);
+                ctx.fillRect(2, -14, 8, 6);
+                
+                // Wheels
+                ctx.fillStyle = '#2c3e50';
+                ctx.beginPath();
+                ctx.arc(-12, 8, 4, 0, Math.PI * 2);
+                ctx.arc(12, 8, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Headlights
+                ctx.fillStyle = this.transmitting ? '#fff' : '#f39c12';
+                ctx.fillRect(18, -4, 3, 3);
+                ctx.fillRect(18, 1, 3, 3);
+                
+                ctx.restore();
+
+                // Draw neighbor connections
+                if (this.transmitting) {
+                    this.neighbors.forEach(neighbor => {
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(neighbor.x, neighbor.y);
+                        ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                // Draw packets
+                this.packets.forEach(packet => {
+                    const startX = this.x;
+                    const startY = this.y;
+                    const endX = packet.target.x;
+                    const endY = packet.target.y;
+                    
+                    const currentX = startX + (endX - startX) * packet.progress;
+                    const currentY = startY + (endY - startY) * packet.progress;
+                    
+                    // Draw packet as a small square
+                    ctx.save();
+                    ctx.translate(currentX, currentY);
+                    ctx.rotate(Math.atan2(endY - startY, endX - startX));
+                    
+                    // Packet body
+                    ctx.fillStyle = packet.success ? '#2ecc71' : '#e74c3c';
+                    ctx.fillRect(-4, -3, 8, 6);
+                    
+                    // Packet glow
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = packet.success ? '#2ecc71' : '#e74c3c';
+                    ctx.fillRect(-4, -3, 8, 6);
+                    
+                    ctx.restore();
+                });
+            }
+        }
+
+        // Initialize simulation
+        function initSimulation() {
+            // Place vehicles in different lanes with varying speeds (lane centers: 110, 170, 230, 290)
+            vehicles = [
+                new Vehicle(200, 110, 25, 0),  // Lane 1 - Slow
+                new Vehicle(500, 170, 40, 1),  // Lane 2 - Fast
+                new Vehicle(800, 230, 30, 2),  // Lane 3 - Medium
+                new Vehicle(1000, 290, 35, 3)  // Lane 4 - Medium-Fast
+            ];
+
+            // Place ground stations (RSUs) on both sides of the road
+            groundStations = [
+                new GroundStation(400, 40, 'RSU-1'),   // Left side, top
+                new GroundStation(800, 360, 'RSU-2')   // Right side, bottom
+            ];
+            
+            resetMetrics();
+        }
+
+        function resetMetrics() {
+            totalPacketsSent = 0;
+            totalPacketsReceived = 0;
+            channelBusyTime = 0;
+            totalTime = 0;
+            time = 0;
+        }
+
+        function resetDemo() {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            initSimulation();
+            updateMetrics();
+            document.getElementById('playPauseText').textContent = '▶️ Start Simulation';
+        }
+
+        // Animation loop
+        let lastTime = 0;
+        function animate(currentTime) {
+            if (!lastTime) lastTime = currentTime;
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            time += deltaTime;
+            totalTime += deltaTime;
+
+            // Clear canvas
+            ctx.fillStyle = 'linear-gradient(to bottom, #1a1a2e, #16213e)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw road with 4 lanes
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 80, canvas.width, 240);
+            
+            // Draw lane dividers
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 10]);
+            
+            // Lane dividers (3 dividers for 4 lanes)
+            for (let i = 1; i <= 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 80 + (i * 60));
+                ctx.lineTo(canvas.width, 80 + (i * 60));
+                ctx.stroke();
+            }
+            
+            // Road edges
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 80);
+            ctx.lineTo(canvas.width, 80);
+            ctx.moveTo(0, 320);
+            ctx.lineTo(canvas.width, 320);
+            ctx.stroke();
+
+            // Update and draw ground stations
+            groundStations.forEach(gs => {
+                gs.update(deltaTime);
+                gs.draw();
+            });
+
+            // Update and draw vehicles
+            vehicles.forEach(v => {
+                v.update(deltaTime);
+                v.draw();
+            });
+
+            // Update metrics every second
+            if (time % 1000 < 50) {
+                updateMetrics();
+            }
+
+            if (isRunning) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const btn = document.getElementById('playPauseText');
+            
+            if (isRunning) {
+                btn.textContent = '⏸️ Pause Simulation';
+                lastTime = 0;
+                animate(0);
+            } else {
+                btn.textContent = '▶️ Resume Simulation';
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            }
+        }
+
+        function updateMetrics() {
+            // Calculate PDR
+            const pdr = totalPacketsSent > 0 ? totalPacketsReceived / totalPacketsSent : 0;
+            const pdrPercent = (pdr * 100).toFixed(2);
+            document.getElementById('pdrValue').textContent = pdrPercent + '%';
+            
+            const pdrCard = document.getElementById('pdrCard');
+            pdrCard.className = 'metric-card ' + (pdr > 0.7 ? 'good' : pdr > 0.4 ? 'medium' : 'poor');
+
+            // Calculate Throughput (simplified)
+            const throughput = (totalPacketsReceived * beaconHz * 0.5).toFixed(2);
+            document.getElementById('throughputValue').textContent = throughput + ' kbps';
+            
+            const throughputCard = document.getElementById('throughputCard');
+            throughputCard.className = 'metric-card ' + (throughput > 20 ? 'good' : throughput > 10 ? 'medium' : 'poor');
+
+            // Calculate CBR
+            const cbr = totalTime > 0 ? Math.min(1, channelBusyTime / totalTime) : 0;
+            document.getElementById('cbrValue').textContent = cbr.toFixed(3);
+            
+            const cbrCard = document.getElementById('cbrCard');
+            cbrCard.className = 'metric-card ' + (cbr < 0.3 ? 'good' : cbr < 0.6 ? 'medium' : 'poor');
+
+            // Calculate average neighbors
+            const avgNeighbors = vehicles.length > 0 
+                ? (vehicles.reduce((sum, v) => sum + v.neighbors.length, 0) / vehicles.length).toFixed(1)
+                : 0;
+            document.getElementById('neighborsValue').textContent = avgNeighbors;
+            
+            const neighborsCard = document.getElementById('neighborsCard');
+            neighborsCard.className = 'metric-card ' + (avgNeighbors > 2 ? 'good' : avgNeighbors > 1 ? 'medium' : 'poor');
+        }
+
+        function addVehicle() {
+            if (vehicles.length < 16) {
+                const x = Math.random() * canvas.width;
+                const speed = 20 + Math.random() * 30; // Wider speed range (20-50)
+                const lane = Math.floor(Math.random() * 4); // Random lane 0-3
+                const laneY = 110 + (lane * 60); // Lane centers
+                vehicles.push(new Vehicle(x, laneY, speed, lane));
+            }
+        }
+
+        function removeVehicle() {
+            if (vehicles.length > 1) {
+                vehicles.pop();
+            }
+        }
+
+        // Update parameters from sliders
+        document.getElementById('beaconSlider').addEventListener('input', (e) => {
+            beaconHz = parseInt(e.target.value);
+            document.getElementById('beaconValue').textContent = beaconHz + ' Hz';
+            vehicles.forEach(v => v.beaconInterval = 1000 / beaconHz);
+        });
+
+        document.getElementById('txPowerSlider').addEventListener('input', (e) => {
+            txPower = parseInt(e.target.value);
+            document.getElementById('txPowerValue').textContent = txPower + ' dBm';
+            // Update transmission range based on TX power
+            // Simplified model: range increases with power
+            transmissionRange = 100 + (txPower - 10) * 10;
+        });
+
+        // Initialize
+        initSimulation();
+        updateMetrics();
+
+        // Draw initial frame
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(0, 80, canvas.width, 240);
+        
+        // Draw lane dividers
+        ctx.strokeStyle = '#f39c12';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([20, 10]);
+        for (let i = 1; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, 80 + (i * 60));
+            ctx.lineTo(canvas.width, 80 + (i * 60));
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        
+        groundStations.forEach(gs => gs.draw());
+        vehicles.forEach(v => v.draw());
+    </script>
+</body>
+</html>
